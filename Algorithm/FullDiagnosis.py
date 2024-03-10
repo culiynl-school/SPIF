@@ -1,12 +1,9 @@
-import cv2
-import matplotlib.pyplot as plt
-import sys
 from CropImage import *
-import time
 from Tesseract import *
 from SPEPAlgorithm import *
 from IFENeuralNetwork import *
 import re
+import time
 
 def FullDiagnosis(source):
     currentDiagnosis = []
@@ -189,7 +186,7 @@ def FullDiagnosis(source):
     gamloDetected = False
     polyDetected = False
     betamDetected = False
-    mspikeDetected = False
+    mspikeDetected = any('MSP' in diagnosis for diagnosis in currentDiagnosis)
     mifxDetected = False
 
     conditions = []
@@ -240,8 +237,6 @@ def FullDiagnosis(source):
     diagnosis = ""
 
     # Format the ife diagnosis into a string
-    if "f" in IFEScan:
-        mifxDetected = True
     IFEScan = ''.join([i.upper() if i == 'g' else 'K' if i == 'kappa' else 'L' if i == 'lambda' else i for i in IFEScan])
 
     if mifxDetected or mspikeDetected:
@@ -259,7 +254,6 @@ def FullDiagnosis(source):
         currentDiagnosis = "MSP UPDATE"
         mspikeDetected = True
 
-    print("\033[92m" + str(currentDiagnosis) + "\033[0m")
     print(f"IFE Diagnosis: \033[92m{diagnosis}\033[0m")
 
     if not mspikeDetected and gdLTextNums[-1] > 2 and "poly" not in conditions:
@@ -282,5 +276,12 @@ def FullDiagnosis(source):
 
 # wait for user input
 while True:
-    num = input("Enter the patient number you want to diagnose: ")
-    FullDiagnosis(num)
+    try:
+        num = input("Enter the patient number you want to diagnose (q to exit): ")
+        if num.lower() == 'q':
+            break
+        startTime = time.time()
+        FullDiagnosis(num)
+        timeElapsedInSeconds = time.time() - startTime
+        print("Time passed: " + str(round(timeElapsedInSeconds, 2)))
+    except: print("Error occured.")
